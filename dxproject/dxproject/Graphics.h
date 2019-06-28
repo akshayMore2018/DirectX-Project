@@ -8,12 +8,21 @@ class Graphics
 public:
 	Graphics();
 	virtual ~Graphics();
+	
+	bool initialize(HINSTANCE hInstance,HWND hw,bool fullscreen);
 	void releaseAll();
-	bool initialize(HWND hw,bool fullscreen);
-	HRESULT showBackBuffer();
+	virtual bool loadContent();
+	virtual void unLoadContent();
 
+	virtual void update(float dt) = 0;
+	virtual void render() = 0;
 
 private:
+	bool fullscreen;
+	unsigned int width;
+	unsigned int height;
+protected:
+	HINSTANCE hInstance;
 	HWND hwnd;
 	D3D_DRIVER_TYPE driverType_;
 	D3D_FEATURE_LEVEL featureLevel_;
@@ -25,11 +34,6 @@ private:
 	IDXGISwapChain* swapChain_; //collection of rendering destination for a device and context to draw to.
 	ID3D11RenderTargetView* backBufferTarget_;
 
-	bool fullscreen;
-	unsigned int width;
-	unsigned int height;
-
-	void initD3Dpp();
 };
 
 

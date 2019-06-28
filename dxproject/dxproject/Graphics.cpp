@@ -18,11 +18,30 @@ Graphics::~Graphics()
 
 void Graphics::releaseAll()
 {
+	unLoadContent();
+	if (backBufferTarget_) backBufferTarget_->Release();
+	if (swapChain_) swapChain_->Release();
+	if (d3dContext_) d3dContext_->Release();
+	if (d3dDevice_) d3dDevice_->Release();
+	d3dDevice_ = 0;
+	d3dContext_ = 0;
+	swapChain_ = 0;
+	backBufferTarget_ = 0;
 }
 
-bool Graphics::initialize(HWND hw,bool fullscreen)
+bool Graphics::loadContent()
+{
+	return true;
+}
+
+void Graphics::unLoadContent()
+{
+}
+
+bool Graphics::initialize(HINSTANCE hInstance, HWND hw,bool fullscreen)
 {
 	hwnd = hw;
+	this->hInstance = hInstance;
 	this->fullscreen = fullscreen;
 	
 	RECT dimensions;
@@ -86,8 +105,6 @@ bool Graphics::initialize(HWND hw,bool fullscreen)
 		return false;
 	}
 
-
-	ID3D11RenderTargetView* backBufferTarget_;
 	ID3D11Texture2D* backBufferTexture;
 
 	result = swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferTexture);
@@ -124,15 +141,7 @@ bool Graphics::initialize(HWND hw,bool fullscreen)
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
 	d3dContext_->RSSetViewports(1, &viewport);
-	return true;
+	return loadContent();
 
 }
 
-HRESULT Graphics::showBackBuffer()
-{
-	return E_NOTIMPL;
-}
-
-void Graphics::initD3Dpp()
-{
-}

@@ -1,11 +1,10 @@
-
 #include <Windows.h>
 #include "Constants.h"
-
+#include "BlankDemo.h"
+#include <memory>
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	WPARAM wParam, LPARAM lParam);
-bool createMainWindow(HINSTANCE hInstance , int nCmdShow);
-
+bool createMainWindow(HINSTANCE &hInstance ,HWND &hwnd, int nCmdShow);
 
 TCHAR ch = ' ';
 
@@ -19,7 +18,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	UNREFERENCED_PARAMETER(prevInstance); //to suppress compiler warnings about parameters that are unused by a function's body.
 	UNREFERENCED_PARAMETER(cmdLine);
 
-	if (!createMainWindow(hInstance, cmdShow))
+	HWND hwnd;
+	if (!createMainWindow(hInstance, hwnd,cmdShow))
+		return -1;
+
+	std::auto_ptr<Graphics>demo(new BlankDemo());
+	bool result = demo->initialize(hInstance,hwnd, true);
+	if (result == false)
 		return -1;
 
 	MSG msg = { 0 };
@@ -42,6 +47,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 			//If there are no messages, the only thing to do is to perform game updates and rendering
 			//update
 			//draw
+			demo->update(0.0f);
+			demo->render();
+			
 		}
 	}
 	return static_cast<int>(msg.wParam);
@@ -87,7 +95,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-bool createMainWindow(HINSTANCE hInstance, int nCmdShow)
+bool createMainWindow(HINSTANCE &hInstance,HWND &hwnd, int nCmdShow)
 {
 	//hInstance : handle of application's current instance
 	//cmdShow : an ID that specifies how the window should be shown.
@@ -123,7 +131,7 @@ bool createMainWindow(HINSTANCE hInstance, int nCmdShow)
 	//calculates the size required of the window based on our desired dimensions and style.
 	//we have both client and non-client(title bar , border etc) areas
 
-	HWND hwnd = CreateWindowA(CLASS_NAME, APP_TITLE,
+	hwnd = CreateWindowA(CLASS_NAME, APP_TITLE,
 		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
 		rc.right - rc.left, rc.bottom - rc.top, NULL, NULL, hInstance, NULL);
 	//used CreateWindowA instead of CreateWindow to accept ANSI string parameters instead of Unicode.
@@ -144,5 +152,6 @@ bool createMainWindow(HINSTANCE hInstance, int nCmdShow)
 
 	ShowWindow(hwnd, nCmdShow);
 	UpdateWindow(hwnd);
+
 	return true;
 }
