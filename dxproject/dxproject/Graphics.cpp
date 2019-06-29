@@ -42,7 +42,15 @@ void Graphics::unLoadContent()
 {
 }
 
-bool Graphics::initialize(HINSTANCE hInstance, HWND hw,bool fullscreen)
+void Graphics::update(float dt)
+{
+}
+
+void Graphics::render()
+{
+}
+
+bool Graphics::initialize(HINSTANCE hInstance, HWND hw, bool fullscreen)
 {
 	hwnd = hw;
 	this->hInstance = hInstance;
@@ -78,7 +86,7 @@ bool Graphics::initialize(HINSTANCE hInstance, HWND hw,bool fullscreen)
 	swapChainDesc.BufferDesc.RefreshRate.Denominator = 60;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.OutputWindow = hwnd;
-	swapChainDesc.Windowed = this->fullscreen;
+	swapChainDesc.Windowed = !this->fullscreen;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 

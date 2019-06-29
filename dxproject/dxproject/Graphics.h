@@ -13,8 +13,8 @@ public:
 	virtual bool loadContent();
 	virtual void unLoadContent();
 
-	virtual void update(float dt) = 0;
-	virtual void render() = 0;
+	virtual void update(float dt);
+	virtual void render();
 
 private:
 	bool fullscreen;
