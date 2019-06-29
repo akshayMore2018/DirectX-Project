@@ -38,41 +38,29 @@ int Model::getIndexCount()
 
 bool Model::initializeBuffers(ID3D11Device * device)
 {
+	VertexPos vertices[]=
+	{
+		//position-------------------------------------color
+		{DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},
+		{DirectX::XMFLOAT3(0.5, -0.5f, 0.5f),DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},
+		{DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f),DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},
+		{DirectX::XMFLOAT3(-0.5, 0.5f, 0.5f),DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)}
+	};
+	mVertexCount = sizeof(vertices)/sizeof(VertexPos);
+
+	unsigned long indices[]=
+	{
+		0,1,2,
+		2,3,0
+	};
+	mIndexCount = sizeof(indices)/sizeof(unsigned long);
+	
 	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 
-	mVertexCount = 4;
-	mIndexCount = 6;
-
-	VertexPos* vertices;
-	unsigned long* indices;
-	vertices = new VertexPos[mVertexCount];
-
-	indices = new unsigned long[mIndexCount];
-
-
-	vertices[0].pos = DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f);
-	vertices[1].pos = DirectX::XMFLOAT3(0.5, -0.5f, 0.5f);
-	vertices[2].pos = DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f);
-	vertices[3].pos = DirectX::XMFLOAT3(-0.5, 0.5f, 0.5f);
-
-	vertices[0].color = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
-	vertices[1].color = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-	vertices[2].color = DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f);
-	vertices[3].color = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
-
-	indices[3] = 2;
-	indices[4] = 3;
-	indices[5] = 0;
-	
-
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexPos)*mVertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(vertices);
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -89,7 +77,7 @@ bool Model::initializeBuffers(ID3D11Device * device)
 	}
 
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(unsigned long) * mIndexCount;
+	indexBufferDesc.ByteWidth = sizeof(indices);
 	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0;
@@ -105,12 +93,6 @@ bool Model::initializeBuffers(ID3D11Device * device)
 	{
 		return false;
 	}
-
-	delete[] vertices;
-	vertices = 0;
-	delete[] indices;
-	indices = 0;
-
 	return true;
 }
 
