@@ -8,6 +8,7 @@ public:
 	struct VertexPos
 	{
 		DirectX::XMFLOAT3 pos;
+		DirectX::XMFLOAT3 color;
 	};
 
 

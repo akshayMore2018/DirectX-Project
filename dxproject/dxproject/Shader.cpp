@@ -52,7 +52,9 @@ bool Shader::initializeShaders(ID3D11Device *device, HWND hwnd,  LPCWSTR vert, L
 
 	D3D11_INPUT_ELEMENT_DESC solidColorLayout[] =
 	{
-		{"Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0}
+		{"Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
+		{"Color",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12u,D3D11_INPUT_PER_VERTEX_DATA,0}
+
 	};
 	unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout);
 	d3dResult = device->CreateInputLayout(solidColorLayout,
