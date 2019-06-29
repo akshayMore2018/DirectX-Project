@@ -24,5 +24,6 @@ protected:
 	HINSTANCE hInstance;
 	HWND hwnd;
 	class D3D* mD3D;
+	class Model* triangle;
 	
 };

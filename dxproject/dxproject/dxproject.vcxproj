@@ -119,6 +119,7 @@
     <ClCompile Include="D3D.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="System.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +127,7 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="D3D.h" />
     <ClInclude Include="Graphics.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="System.h" />
   </ItemGroup>
   <ItemGroup>

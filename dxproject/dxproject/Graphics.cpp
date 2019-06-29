@@ -1,11 +1,11 @@
 #include "Graphics.h"
 #include <memory>
 #include "D3D.h"
-
+#include "Model.h"
 
 #pragma comment(lib, "D3DCompiler.lib") 
 
-Graphics::Graphics():mD3D(0),
+Graphics::Graphics():mD3D(0),triangle(0),
 	fullscreen(false),width(0),height(0)
 {
 

@@ -1,7 +1,7 @@
 #include "BlankDemo.h"
 #include <DirectXMath.h>
 #include "D3D.h"
-
+#include "Model.h"
 struct VertexPos
 {
 	DirectX::XMFLOAT3 pos;
@@ -20,32 +20,15 @@ BlankDemo::~BlankDemo()
 
 bool BlankDemo::loadContent()
 {
-
-	VertexPos vertices[]
-	{
-		DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f),
-		DirectX::XMFLOAT3(0.5, -0.5f, 0.5f),
-		DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f)
-
-	};
-
-	HRESULT d3dResult;
-
-	D3D11_BUFFER_DESC bufferDesc = {};
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.ByteWidth = sizeof(VertexPos)*3;
-	D3D11_SUBRESOURCE_DATA subResDesc = {};
-	subResDesc.pSysMem = vertices;
-	d3dResult = mD3D->GetDevice()->CreateBuffer(&bufferDesc, &subResDesc, &vertexBuffer_);
-	if (FAILED(d3dResult))
+	triangle = new Model();
+	bool success = triangle->initialize(mD3D->GetDevice());
+	if (!success)
 	{
 		return false;
 	}
 
-
 	ID3DBlob* vsBuffer=0;
-
+	HRESULT d3dResult;
 	HRESULT result = D3DReadFileToBlob(L"VertexShader.cso", &vsBuffer);
 	if (FAILED(result))
 	{
@@ -109,11 +92,13 @@ void BlankDemo::unLoadContent()
 	if (solidColorVS_) solidColorVS_->Release();
 	if (solidColorPS_) solidColorPS_->Release();
 	if (inputLayout_) inputLayout_->Release();
-	if (vertexBuffer_) vertexBuffer_->Release();
 	solidColorVS_ = 0;
 	solidColorPS_ = 0;
 	inputLayout_ = 0;
-	vertexBuffer_ = 0;
+
+	if (triangle)
+		delete triangle;
+	triangle = 0;
 }
 
 void BlankDemo::update(float dt)
@@ -127,15 +112,13 @@ void BlankDemo::render()
 	
 	mD3D->begin(0.0f, 0.0f, 0.25f, 1.0f);
 	
-	unsigned int stride = sizeof(VertexPos);
-	unsigned int offset = 0;
-
 	mD3D->GetDeviceContext()->IASetInputLayout(inputLayout_);
-	mD3D->GetDeviceContext()->IASetVertexBuffers(0, 1, &vertexBuffer_, &stride, &offset);
-	mD3D->GetDeviceContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	triangle->render(mD3D->GetDeviceContext());
+
 	mD3D->GetDeviceContext()->VSSetShader(solidColorVS_, 0, 0);
 	mD3D->GetDeviceContext()->PSSetShader(solidColorPS_, 0, 0);
-	mD3D->GetDeviceContext()->Draw(3, 0);
+	mD3D->GetDeviceContext()->Draw(triangle->getIndexCount(), 0);
 	
 	mD3D->end();
 }
