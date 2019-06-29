@@ -1,6 +1,10 @@
 #include "Graphics.h"
 #include <memory>
 
+
+#pragma comment(lib, "d3d11.lib") 
+#pragma comment(lib, "D3DCompiler.lib") 
+
 Graphics::Graphics()
 	:driverType_(D3D_DRIVER_TYPE_NULL),
 	featureLevel_(D3D_FEATURE_LEVEL_11_0),
