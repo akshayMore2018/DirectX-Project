@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Graphics.h"
-
+#include <d3d11.h>
 class BlankDemo : public Graphics
 {
 public:

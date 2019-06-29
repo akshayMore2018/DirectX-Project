@@ -18,7 +18,6 @@ public:
 
 private:
 
-	bool frame();
 	bool initializeWindow(int&, int&);
 	void releaseWindow();
 

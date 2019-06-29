@@ -116,6 +116,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BlankDemo.cpp" />
+    <ClCompile Include="D3D.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="System.cpp" />
@@ -123,6 +124,7 @@
   <ItemGroup>
     <ClInclude Include="BlankDemo.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="D3D.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="System.h" />
   </ItemGroup>

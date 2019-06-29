@@ -1,5 +1,6 @@
 #include "BlankDemo.h"
 #include <DirectXMath.h>
+#include "D3D.h"
 
 struct VertexPos
 {
@@ -36,7 +37,7 @@ bool BlankDemo::loadContent()
 	bufferDesc.ByteWidth = sizeof(VertexPos)*3;
 	D3D11_SUBRESOURCE_DATA subResDesc = {};
 	subResDesc.pSysMem = vertices;
-	d3dResult = d3dDevice_->CreateBuffer(&bufferDesc, &subResDesc, &vertexBuffer_);
+	d3dResult = mD3D->GetDevice()->CreateBuffer(&bufferDesc, &subResDesc, &vertexBuffer_);
 	if (FAILED(d3dResult))
 	{
 		return false;
@@ -52,7 +53,7 @@ bool BlankDemo::loadContent()
 		return false;
 	}
 
-	d3dResult=d3dDevice_->CreateVertexShader(vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), nullptr, &solidColorVS_);
+	d3dResult= mD3D->GetDevice()->CreateVertexShader(vsBuffer->GetBufferPointer(), vsBuffer->GetBufferSize(), nullptr, &solidColorVS_);
 
 	if (FAILED(d3dResult))
 	{
@@ -68,7 +69,7 @@ bool BlankDemo::loadContent()
 		{"Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0}
 	};
 	unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout);
-	d3dResult = d3dDevice_->CreateInputLayout(solidColorLayout,
+	d3dResult = mD3D->GetDevice()->CreateInputLayout(solidColorLayout,
 		totalLayoutElements, vsBuffer->GetBufferPointer(),
 		vsBuffer->GetBufferSize(), &inputLayout_);
 	vsBuffer->Release();
@@ -87,7 +88,7 @@ bool BlankDemo::loadContent()
 		return false;
 	}
 
-	d3dResult = d3dDevice_->CreatePixelShader(psBuffer->GetBufferPointer(), psBuffer->GetBufferSize(), nullptr, &solidColorPS_);
+	d3dResult = mD3D->GetDevice()->CreatePixelShader(psBuffer->GetBufferPointer(), psBuffer->GetBufferSize(), nullptr, &solidColorPS_);
 
 	if (FAILED(d3dResult))
 	{
@@ -121,22 +122,20 @@ void BlankDemo::update(float dt)
 
 void BlankDemo::render()
 {
-	if (d3dContext_ == 0)
+	if (mD3D->GetDeviceContext() == 0)
 		return;
-
-	float clearColor[4] = { 0.0f,0.0f,0.25f,1.0f };
-	d3dContext_->ClearRenderTargetView(backBufferTarget_, clearColor);
 	
+	mD3D->begin(0.0f, 0.0f, 0.25f, 1.0f);
 	
 	unsigned int stride = sizeof(VertexPos);
 	unsigned int offset = 0;
 
-	d3dContext_->IASetInputLayout(inputLayout_);
-	d3dContext_->IASetVertexBuffers(0, 1, &vertexBuffer_, &stride, &offset);
-	d3dContext_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	d3dContext_->VSSetShader(solidColorVS_, 0, 0);
-	d3dContext_->PSSetShader(solidColorPS_, 0, 0);
-	d3dContext_->Draw(3, 0);
+	mD3D->GetDeviceContext()->IASetInputLayout(inputLayout_);
+	mD3D->GetDeviceContext()->IASetVertexBuffers(0, 1, &vertexBuffer_, &stride, &offset);
+	mD3D->GetDeviceContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	mD3D->GetDeviceContext()->VSSetShader(solidColorVS_, 0, 0);
+	mD3D->GetDeviceContext()->PSSetShader(solidColorPS_, 0, 0);
+	mD3D->GetDeviceContext()->Draw(3, 0);
 	
-	swapChain_->Present(0, 0);
+	mD3D->end();
 }
