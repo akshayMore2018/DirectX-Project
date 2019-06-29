@@ -2,10 +2,11 @@
 #include <memory>
 #include "D3D.h"
 #include "Model.h"
+#include "Shader.h"
 
 #pragma comment(lib, "D3DCompiler.lib") 
 
-Graphics::Graphics():mD3D(0),triangle(0),
+Graphics::Graphics():mD3D(0),triangle(0),shader(0),
 	fullscreen(false),width(0),height(0)
 {
 
@@ -19,18 +20,41 @@ Graphics::~Graphics()
 void Graphics::releaseAll()
 {
 	unLoadContent();
-	if(mD3D)
-	delete mD3D;
-	mD3D = 0;
 }
 
 bool Graphics::loadContent()
 {
+
+	triangle = new Model();
+	bool success = triangle->initialize(mD3D->GetDevice());
+	if (!success)
+	{
+		return false;
+	}
+
+	shader = new Shader();
+	success = shader->initialize(mD3D->GetDevice(), hwnd);
+
+	if (!success)
+	{
+		return false;
+	}
 	return true;
 }
 
 void Graphics::unLoadContent()
 {
+	if (shader)
+		delete shader;
+	shader = 0;
+
+	if (triangle)
+		delete triangle;
+	triangle = 0;
+
+	if (mD3D)
+		delete mD3D;
+	mD3D = 0;
 }
 
 void Graphics::update(float dt)
@@ -44,7 +68,9 @@ void Graphics::render()
 
 	mD3D->begin(0.0f, 0.0f, 0.25f, 1.0f);
 
+	triangle->render(mD3D->GetDeviceContext());
 
+	shader->render(mD3D->GetDeviceContext(), triangle->getIndexCount());
 
 	mD3D->end();
 }

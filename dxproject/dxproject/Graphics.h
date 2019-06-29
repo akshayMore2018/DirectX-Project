@@ -25,5 +25,6 @@ protected:
 	HWND hwnd;
 	class D3D* mD3D;
 	class Model* triangle;
+	class Shader* shader;
 	
 };

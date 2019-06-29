@@ -1,5 +1,5 @@
 #include "System.h"
-#include "BlankDemo.h"
+#include "Graphics.h"
 System::System() :m_Graphics(nullptr)
 {
 }
@@ -23,7 +23,7 @@ bool System::initialize()
 		return false;
 	}
 
-	m_Graphics = new BlankDemo();
+	m_Graphics = new Graphics();
 
 	result = m_Graphics->initialize(hInstance,hwnd,false);
 	if (!result)
