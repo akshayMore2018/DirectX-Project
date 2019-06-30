@@ -2,15 +2,17 @@
 #include <d3dcompiler.h>
 Shader::Shader()
 	:solidColorVS_(0), solidColorPS_(0),
-	inputLayout_(0), vertexBuffer_(0)
+	inputLayout_(0), vertexBuffer_(0),rasterState_(0)
 {
 }
 
 Shader::~Shader()
 {
+	if (rasterState_)rasterState_->Release();
 	if (solidColorVS_) solidColorVS_->Release();
 	if (solidColorPS_) solidColorPS_->Release();
 	if (inputLayout_) inputLayout_->Release();
+	rasterState_ = 0;
 	solidColorVS_ = 0;
 	solidColorPS_ = 0;
 	inputLayout_ = 0;
@@ -53,7 +55,7 @@ bool Shader::initializeShaders(ID3D11Device *device, HWND hwnd,  LPCWSTR vert, L
 	D3D11_INPUT_ELEMENT_DESC solidColorLayout[] =
 	{
 		{"Position",0,DXGI_FORMAT_R32G32B32_FLOAT,0,0,D3D11_INPUT_PER_VERTEX_DATA,0},
-		{"Color",0,DXGI_FORMAT_R32G32B32_FLOAT,0,12u,D3D11_INPUT_PER_VERTEX_DATA,0}
+		{"Color",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D11_APPEND_ALIGNED_ELEMENT,D3D11_INPUT_PER_VERTEX_DATA,0}
 
 	};
 	unsigned int totalLayoutElements = ARRAYSIZE(solidColorLayout);
@@ -86,12 +88,26 @@ bool Shader::initializeShaders(ID3D11Device *device, HWND hwnd,  LPCWSTR vert, L
 	}
 	psBuffer->Release();
 
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ZeroMemory(&rasterDesc, sizeof(D3D11_RASTERIZER_DESC));
+	rasterDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+
+	d3dResult = device->CreateRasterizerState(&rasterDesc, &rasterState_);
+	if (FAILED(d3dResult))
+	{
+		MessageBox(0, "Error Creating Raster State!", "Raster Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 
 void Shader::render(ID3D11DeviceContext * deviceContext, int n)
 {
+	deviceContext->RSSetState(rasterState_);
 	deviceContext->IASetInputLayout(inputLayout_);
 	deviceContext->VSSetShader(solidColorVS_, 0, 0);
 	deviceContext->PSSetShader(solidColorPS_, 0, 0);

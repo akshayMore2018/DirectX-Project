@@ -16,4 +16,6 @@ private:
 	ID3D11PixelShader* solidColorPS_;
 	ID3D11InputLayout* inputLayout_;
 	ID3D11Buffer* vertexBuffer_;
+
+	ID3D11RasterizerState* rasterState_;
 };
