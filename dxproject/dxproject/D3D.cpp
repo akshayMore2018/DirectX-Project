@@ -1,5 +1,6 @@
 #include "D3D.h"
 #pragma comment(lib, "d3d11.lib") 
+#pragma comment(lib, "DirectXTK.lib")
 
 D3D::D3D()
 	:driverType_(D3D_DRIVER_TYPE_NULL),
