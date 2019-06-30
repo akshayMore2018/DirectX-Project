@@ -43,7 +43,12 @@ bool Model::initializeBuffers(ID3D11Device * device)
 		//position-------------------------------------color
 		{DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},
 		{DirectX::XMFLOAT3(0.5, -0.5f, 0.5f),DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)},
-		{DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f),DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},
+		{DirectX::XMFLOAT3(-0.5f, -0.5f,0.5f),DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f)},
+		
+		/*{DirectX::XMFLOAT3(-0.5f, -0.5f,0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},
+		{DirectX::XMFLOAT3(0.0f, 0.0f,0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},
+		{DirectX::XMFLOAT3(0.5, -0.5f, 0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)}
+		*/
 		{DirectX::XMFLOAT3(-0.5, 0.5f, 0.5f),DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f)}
 	};
 	mVertexCount = sizeof(vertices)/sizeof(VertexPos);

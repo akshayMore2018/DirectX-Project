@@ -5,7 +5,8 @@ D3D::D3D()
 	:driverType_(D3D_DRIVER_TYPE_NULL),
 	featureLevel_(D3D_FEATURE_LEVEL_11_0),
 	d3dDevice_(0), d3dContext_(0), swapChain_(0),
-	backBufferTarget_(0)
+	backBufferTarget_(0), depthStencilView_(0),
+	depthStencilBuffer_(0), depthStencilState_(0)
 {
 }
 
@@ -99,7 +100,52 @@ bool D3D::initialize(HWND hwnd, unsigned int width, unsigned int height, bool fu
 		MessageBox(hwnd, (LPCSTR)L"Render target!", (LPCSTR)L"Failed to create the render target view!", MB_ICONWARNING | MB_CANCELTRYCONTINUE | MB_DEFBUTTON2);
 		return false;
 	}
-	d3dContext_->OMSetRenderTargets(1, &backBufferTarget_, 0);
+
+	//DepthStencil Desc
+	D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
+	depthStencilBufferDesc.Width = width;
+	depthStencilBufferDesc.Height = height;
+	depthStencilBufferDesc.MipLevels = 1;
+	depthStencilBufferDesc.ArraySize = 1;
+	depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilBufferDesc.SampleDesc.Count = 1;
+	depthStencilBufferDesc.SampleDesc.Quality = 0;
+	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilBufferDesc.CPUAccessFlags = 0;
+	depthStencilBufferDesc.MiscFlags = 0;
+
+	result = d3dDevice_->CreateTexture2D(&depthStencilBufferDesc, NULL, &depthStencilBuffer_);
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating Depth Stencil Buffer!", "Buffer Error", MB_OK);
+		return false;
+	}
+
+	result = d3dDevice_->CreateDepthStencilView(depthStencilBuffer_, NULL, &depthStencilView_);
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating Depth Stencil View!", "View Error", MB_OK);
+		return false;
+	}
+	d3dContext_->OMSetRenderTargets(1, &backBufferTarget_, depthStencilView_);
+
+
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
+	ZeroMemory(&depthStencilStateDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	depthStencilStateDesc.DepthEnable = true;
+	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+	
+	result = d3dDevice_->CreateDepthStencilState(&depthStencilStateDesc,&depthStencilState_);
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating Depth Stencil State!", "View Error", MB_OK);
+		return false;
+	}
+	d3dContext_->OMSetDepthStencilState(depthStencilState_, 0);
+	
 	D3D11_VIEWPORT viewport;
 	viewport.Width = static_cast<float>(width);
 	viewport.Height = static_cast<float>(height);
@@ -109,12 +155,14 @@ bool D3D::initialize(HWND hwnd, unsigned int width, unsigned int height, bool fu
 	viewport.TopLeftY = 0.0f;
 	d3dContext_->RSSetViewports(1, &viewport);
 	
-
 	return true;
 }
 
 void D3D::releaseAll()
 {
+	if (depthStencilState_)depthStencilState_->Release();
+	if (depthStencilBuffer_)depthStencilBuffer_->Release();
+	if (depthStencilView_)depthStencilView_->Release();
 	if (backBufferTarget_) backBufferTarget_->Release();
 	if (swapChain_) swapChain_->Release();
 	if (d3dContext_) d3dContext_->Release();
@@ -123,12 +171,16 @@ void D3D::releaseAll()
 	d3dContext_ = 0;
 	swapChain_ = 0;
 	backBufferTarget_ = 0;
+	depthStencilView_ = 0;
+	depthStencilBuffer_ = 0;
+	depthStencilState_ = 0;
 }
 
 void D3D::begin(float r, float g, float b, float a)
 {
 	float clearColor[4] = {r,g,b,a};
 	d3dContext_->ClearRenderTargetView(backBufferTarget_, clearColor);
+	d3dContext_->ClearDepthStencilView(depthStencilView_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 void D3D::end()

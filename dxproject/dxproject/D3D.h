@@ -25,6 +25,10 @@ private:
 	IDXGISwapChain* swapChain_; //collection of rendering destination for a device and context to draw to.
 	ID3D11RenderTargetView* backBufferTarget_;
 
+	ID3D11DepthStencilView* depthStencilView_;
+	ID3D11Texture2D* depthStencilBuffer_;
+	ID3D11DepthStencilState* depthStencilState_;
+
 	//D3D_DRIVER_TYPE driverType_;
 	//D3D_FEATURE_LEVEL featureLevel_;
 	//ID3D11Device* d3dDevice_;//The Direct3D device is the device itself and communicates with the hardware.

@@ -107,8 +107,8 @@ bool Shader::initializeShaders(ID3D11Device *device, HWND hwnd,  LPCWSTR vert, L
 
 void Shader::render(ID3D11DeviceContext * deviceContext, int n)
 {
-	deviceContext->RSSetState(rasterState_);
 	deviceContext->IASetInputLayout(inputLayout_);
+	deviceContext->RSSetState(rasterState_);
 	deviceContext->VSSetShader(solidColorVS_, 0, 0);
 	deviceContext->PSSetShader(solidColorPS_, 0, 0);
 	deviceContext->DrawIndexed(n, 0, 0);
