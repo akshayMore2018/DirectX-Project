@@ -24,7 +24,9 @@ void Graphics::releaseAll()
 
 bool Graphics::loadContent()
 {
-
+	mSpriteBatch = std::make_unique<DirectX::SpriteBatch>(mD3D->GetDeviceContext());
+	mSpriteFont = std::make_unique<DirectX::SpriteFont>(mD3D->GetDevice(), L"Assets\\Fonts\\comic_sans_ms_16.spritefont");
+	
 	triangle = new Model();
 	bool success = triangle->initialize(mD3D->GetDevice());
 	if (!success)
@@ -71,6 +73,13 @@ void Graphics::render()
 	triangle->render(mD3D->GetDeviceContext());
 
 	shader->render(mD3D->GetDeviceContext(), triangle->getIndexCount());
+
+	mSpriteBatch->Begin();
+
+	mSpriteFont->DrawString(mSpriteBatch.get(), L"DirectX11 Demo", DirectX::XMFLOAT2(0, 0), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0, 0), DirectX::XMFLOAT2(1.0, 1.0));
+
+	mSpriteBatch->End();
+
 
 	mD3D->end();
 }

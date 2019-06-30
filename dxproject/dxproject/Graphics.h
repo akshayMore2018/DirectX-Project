@@ -1,6 +1,7 @@
 #pragma once
 #include <d3dcompiler.h>
-
+#include <SpriteBatch.h>
+#include <SpriteFont.h>
 class Graphics
 {
 public:
@@ -26,5 +27,8 @@ protected:
 	class D3D* mD3D;
 	class Model* triangle;
 	class Shader* shader;
+	
+	std::unique_ptr<DirectX::SpriteBatch> mSpriteBatch;
+	std::unique_ptr<DirectX::SpriteFont> mSpriteFont;
 	
 };
