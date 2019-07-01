@@ -52,15 +52,10 @@ bool Model::initializeBuffers(ID3D11Device * device)
 	VertexPos vertices[]=
 	{
 		//position-------------------------------------color
-		{DirectX::XMFLOAT3(-0.5f, -0.5f, 1.5f),DirectX::XMFLOAT2(0.0f, 1.0f)},
-		{DirectX::XMFLOAT3(0.0, 0.5f, 1.5f),DirectX::XMFLOAT2(0.5f, 0.0f)},
-		{DirectX::XMFLOAT3(0.5f, -0.5f,1.0f),DirectX::XMFLOAT2(1.0f, 1.0f)},
-		
-		/*{DirectX::XMFLOAT3(-0.5f, -0.5f,0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},
-		{DirectX::XMFLOAT3(0.0f, 0.0f,0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)},
-		{DirectX::XMFLOAT3(0.5, -0.5f, 0.5f),DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f)}
-		*/
-		//{DirectX::XMFLOAT3(-0.5, 0.5f, 0.5f),DirectX::XMFLOAT2(0.0f, 1.0f)}
+		{DirectX::XMFLOAT3(-0.5f,-0.5f, 0.5f),DirectX::XMFLOAT2(0.0f, 1.0f)},
+		{DirectX::XMFLOAT3(-0.5f, 0.5f, 0.5f),DirectX::XMFLOAT2(0.0f, 0.0f)},
+		{DirectX::XMFLOAT3( 0.5f, 0.5f, 0.5f),DirectX::XMFLOAT2(1.0f, 0.0f)},
+		{DirectX::XMFLOAT3( 0.5f,-0.5f, 0.5f),DirectX::XMFLOAT2(1.0f, 1.0f)}
 	};
 	mVertexCount = sizeof(vertices)/sizeof(VertexPos);
 
