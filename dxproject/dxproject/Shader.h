@@ -18,4 +18,5 @@ private:
 	ID3D11Buffer* vertexBuffer_;
 
 	ID3D11RasterizerState* rasterState_;
+	ID3D11SamplerState* samplerState_;
 };

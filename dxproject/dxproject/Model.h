@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <WICTextureLoader.h>
 class Model
 {
 public:
@@ -8,7 +9,7 @@ public:
 	struct VertexPos
 	{
 		DirectX::XMFLOAT3 pos;
-		DirectX::XMFLOAT3 color;
+		DirectX::XMFLOAT2 texCoord;
 	};
 
 
@@ -29,4 +30,6 @@ private:
 	ID3D11Buffer* mVertexBuffer;
 	ID3D11Buffer* mIndexBuffer;
 	int mVertexCount, mIndexCount;
+
+	ID3D11ShaderResourceView* mTex;
 };

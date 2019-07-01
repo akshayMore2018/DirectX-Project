@@ -1,4 +1,10 @@
-float4 main(float3 color : Color) : SV_Target
+
+Texture2D objTexture : Texture: register(t0);
+SamplerState objSamplerState : Sampler: register(s0);
+
+
+float4 main(float2 texCoord : Texcoord) : SV_Target
 {
-	return float4(color.x,color.y,color.z,1.0f);
+	float3 pixelColor = objTexture.Sample(objSamplerState, texCoord);
+	return float4(pixelColor,1.0f);
 }
