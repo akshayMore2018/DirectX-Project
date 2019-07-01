@@ -138,6 +138,7 @@
     <ClCompile Include="System.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="D3D.h" />
     <ClInclude Include="Graphics.h" />

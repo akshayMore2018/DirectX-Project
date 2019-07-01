@@ -1,7 +1,8 @@
 #pragma once
-#include <d3d11.h>
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
+#include "ConstantBuffer.h"
+
 class Model
 {
 public:
@@ -12,6 +13,11 @@ public:
 		DirectX::XMFLOAT2 texCoord;
 	};
 
+	struct Vector2
+	{
+		float x = 0;
+		float y = 0;
+	};
 
 	Model();
 	~Model();
@@ -29,6 +35,8 @@ private:
 
 	ID3D11Buffer* mVertexBuffer;
 	ID3D11Buffer* mIndexBuffer;
+	
+	ConstantBuffer<Vector2> mConstantBuffer;
 	int mVertexCount, mIndexCount;
 
 	ID3D11ShaderResourceView* mTex;

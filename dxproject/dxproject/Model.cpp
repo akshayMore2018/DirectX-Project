@@ -62,7 +62,7 @@ bool Model::initializeBuffers(ID3D11Device * device)
 	unsigned long indices[]=
 	{
 		0,1,2,
-		2,3,0
+		0,2,3
 	};
 	mIndexCount = sizeof(indices)/sizeof(unsigned long);
 	
@@ -104,6 +104,19 @@ bool Model::initializeBuffers(ID3D11Device * device)
 	{
 		return false;
 	}
+
+	
+
+	result = this->mConstantBuffer.initialize(device);
+
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating const buffer!", "Buffer Error", MB_OK);
+		return false;
+	}
+
+
+
 	return true;
 }
 
@@ -122,8 +135,15 @@ void Model::renderBuffers(ID3D11DeviceContext * deviceContext)
 	unsigned int stride = sizeof(VertexPos);
 	unsigned int offset = 0;
 
-	deviceContext->PSSetShaderResources(0, 1, &mTex);
+	mConstantBuffer.data.x = 0.0f;
+	mConstantBuffer.data.y = 0.3f;
 
+	if (!mConstantBuffer.applyChanges(deviceContext))
+	{
+		return;
+	}
+	deviceContext->VSSetConstantBuffers(0, 1, mConstantBuffer.get());
+	deviceContext->PSSetShaderResources(0, 1, &mTex);
 	deviceContext->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
 	deviceContext->IASetIndexBuffer(mIndexBuffer,DXGI_FORMAT_R32_UINT,0);
 }
