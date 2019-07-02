@@ -1,5 +1,5 @@
 #include "Model.h"
-
+#include <DirectXMath.h>
 Model::Model():
 	mVertexBuffer(0),mIndexBuffer(0),
 	mVertexCount(0),mIndexCount(0), mTex(0)
@@ -13,6 +13,7 @@ Model::~Model()
 
 bool Model::initialize(ID3D11Device * device)
 {
+	
 	bool success = initializeBuffers(device);
 	if (!success)
 	{
@@ -37,10 +38,17 @@ void Model::release()
 	releaseBuffers();
 }
 
-void Model::render(ID3D11DeviceContext * deviceContext)
+void Model::render(ID3D11DeviceContext * deviceContext,const DirectX::XMMATRIX & view, const DirectX::XMMATRIX & projection)
 {
+	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
+	mConstantBuffer.data.mat = world * view * projection;
+	mConstantBuffer.data.mat = DirectX::XMMatrixTranspose(mConstantBuffer.data.mat);
+
+
+
 	renderBuffers(deviceContext);
 }
+
 
 int Model::getIndexCount()
 {
@@ -52,10 +60,10 @@ bool Model::initializeBuffers(ID3D11Device * device)
 	VertexPos vertices[]=
 	{
 		//position-------------------------------------color
-		{DirectX::XMFLOAT3(-0.5f,-0.5f, 0.5f),DirectX::XMFLOAT2(0.0f, 1.0f)},
-		{DirectX::XMFLOAT3(-0.5f, 0.5f, 0.5f),DirectX::XMFLOAT2(0.0f, 0.0f)},
-		{DirectX::XMFLOAT3( 0.5f, 0.5f, 0.5f),DirectX::XMFLOAT2(1.0f, 0.0f)},
-		{DirectX::XMFLOAT3( 0.5f,-0.5f, 0.5f),DirectX::XMFLOAT2(1.0f, 1.0f)}
+		{DirectX::XMFLOAT3(-0.5f,-0.5f, 0.0f),DirectX::XMFLOAT2(0.0f, 1.0f)},
+		{DirectX::XMFLOAT3(-0.5f, 0.5f, 0.0f),DirectX::XMFLOAT2(0.0f, 0.0f)},
+		{DirectX::XMFLOAT3( 0.5f, 0.5f, 0.0f),DirectX::XMFLOAT2(1.0f, 0.0f)},
+		{DirectX::XMFLOAT3( 0.5f,-0.5f, 0.0f),DirectX::XMFLOAT2(1.0f, 1.0f)}
 	};
 	mVertexCount = sizeof(vertices)/sizeof(VertexPos);
 
@@ -115,8 +123,6 @@ bool Model::initializeBuffers(ID3D11Device * device)
 		return false;
 	}
 
-
-
 	return true;
 }
 
@@ -134,9 +140,6 @@ void Model::renderBuffers(ID3D11DeviceContext * deviceContext)
 {
 	unsigned int stride = sizeof(VertexPos);
 	unsigned int offset = 0;
-
-	mConstantBuffer.data.x = 0.0f;
-	mConstantBuffer.data.y = 0.3f;
 
 	if (!mConstantBuffer.applyChanges(deviceContext))
 	{

@@ -27,7 +27,7 @@ protected:
 	class D3D* mD3D;
 	class Model* triangle;
 	class Shader* shader;
-	
+	class Camera* camera;
 	std::unique_ptr<DirectX::SpriteBatch> mSpriteBatch;
 	std::unique_ptr<DirectX::SpriteFont> mSpriteFont;
 	

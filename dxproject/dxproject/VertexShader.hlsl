@@ -1,7 +1,6 @@
 cbuffer mycBuffer : register(b0)
 {
-	float x;
-	float y;
+	float4x4 mat;
 };
 
 struct VSOut
@@ -13,9 +12,7 @@ struct VSOut
 VSOut main(float3 pos : Position,float2 texCoord: Texcoord)
 {
 	VSOut vso;
-	pos.x += x;
-	pos.y += y;
-	vso.pos = float4(pos.x, pos.y, pos.z, 1.0f);
+	vso.pos = mul(float4(pos.x, pos.y, pos.z, 1.0f),mat);
 	vso.texCoord = texCoord;
 	return vso;
 }

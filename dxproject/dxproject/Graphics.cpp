@@ -3,11 +3,11 @@
 #include "D3D.h"
 #include "Model.h"
 #include "Shader.h"
-
+#include "Camera.h"
 #pragma comment(lib, "D3DCompiler.lib") 
 
 Graphics::Graphics():mD3D(0),triangle(0),shader(0),
-	fullscreen(false),width(0),height(0)
+	fullscreen(false),width(0),height(0),camera(0)
 {
 
 }
@@ -27,6 +27,11 @@ bool Graphics::loadContent()
 	mSpriteBatch = std::make_unique<DirectX::SpriteBatch>(mD3D->GetDeviceContext());
 	mSpriteFont = std::make_unique<DirectX::SpriteFont>(mD3D->GetDevice(), L"Assets\\Fonts\\comic_sans_ms_16.spritefont");
 	
+	camera = new Camera();
+	camera->setProjectionValues(90.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 1000.0f);
+	camera->setPosition(0.0f, 0.0f, -2.0f);
+
+
 	triangle = new Model();
 	bool success = triangle->initialize(mD3D->GetDevice());
 	if (!success)
@@ -46,6 +51,9 @@ bool Graphics::loadContent()
 
 void Graphics::unLoadContent()
 {
+	if (camera)
+		delete camera;
+	camera = 0;
 	if (shader)
 		delete shader;
 	shader = 0;
@@ -61,6 +69,7 @@ void Graphics::unLoadContent()
 
 void Graphics::update(float dt)
 {
+
 }
 
 void Graphics::render()
@@ -70,7 +79,7 @@ void Graphics::render()
 
 	mD3D->begin(0.0f, 0.0f, 0.25f, 1.0f);
 
-	triangle->render(mD3D->GetDeviceContext());
+	triangle->render(mD3D->GetDeviceContext(),camera->getViewMatrix(),camera->getProjectionMatrix());
 
 	shader->render(mD3D->GetDeviceContext(), triangle->getIndexCount());
 
