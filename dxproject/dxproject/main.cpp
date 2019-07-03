@@ -2,25 +2,22 @@
 #include "Constants.h"
 #include <memory>
 
-#include "System.h"
+#include "Engine.h"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	LPWSTR cmdLine, int cmdShow)
 {
-	System* system;
-	
+	Engine engine;
 
-	system = new System();
-
-	bool result = system->initialize();
+	bool result = engine.initialize();
 	if (result)
 	{
-		system->run();
+		while (engine.running())
+		{
+			engine.update();
+			engine.render();
+		}
 	}
-
-	system->release();
-	delete system;
-	system = 0;
 
 	return 0;
 }
