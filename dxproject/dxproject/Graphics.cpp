@@ -92,7 +92,7 @@ void Graphics::render()
 	unsigned int offset = 0;
 
 	XMMATRIX world = XMMatrixIdentity();
-	camera->adjustPosition(0.0f, 0.01f, 0.0f);
+	camera->adjustPosition(0.0f, 0.0f, 0.01f);
 	mConstantBuffer.data.mat = world * camera->getViewMatrix() * camera->getProjectionMatrix();
 	mConstantBuffer.data.mat = XMMatrixTranspose(mConstantBuffer.data.mat);
 

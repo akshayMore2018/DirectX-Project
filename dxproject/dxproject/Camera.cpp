@@ -105,6 +105,36 @@ void Camera::adjustRotation(float x, float y, float z)
 	this->updateViewMatrix();
 }
 
+void Camera::setLookAtPos(XMFLOAT3 lookatpos)
+{
+	if (lookatpos.x == this->pos.x && lookatpos.y == this->pos.y && lookatpos.z == this->pos.z)
+		return;
+
+	lookatpos.x = this->pos.x - lookatpos.x;
+	lookatpos.y = this->pos.y - lookatpos.y;
+	lookatpos.z = this->pos.z - lookatpos.z;
+	
+	float pitch = 0.0f;
+	if (lookatpos.y != 0.0f)
+	{
+		const float distance = sqrt(lookatpos.x*lookatpos.x + lookatpos.y*lookatpos.y + lookatpos.z*lookatpos.z);
+		pitch = atan(lookatpos.y / distance);
+	}
+
+
+	float yaw = 0.0f;
+	if (lookatpos.x != 0.0f)
+	{
+		yaw = atan(lookatpos.x / lookatpos.z);
+	}
+
+	if (lookatpos.z > 0)
+		yaw += XM_PI;
+
+	this->setRotation(pitch, yaw, 0.0f);
+
+}
+
 void Camera::updateViewMatrix()
 {
 	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(this->rot.x, this->rot.y, this->rot.z);

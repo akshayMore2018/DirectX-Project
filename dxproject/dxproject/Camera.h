@@ -23,6 +23,7 @@ public:
 	void setRotation(float x, float y, float z);
 	void adjustRotation(const XMVECTOR& rot);
 	void adjustRotation(float x, float y, float z);
+	void setLookAtPos(XMFLOAT3 lookatpos);
 
 private:
 	void updateViewMatrix();
