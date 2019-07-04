@@ -30,7 +30,7 @@ public:
 
 	void update(float dt);
 	void render();
-
+	class Camera* camera;
 private:
 	HRESULT initializeDirectX(HWND hwnd);
 	HRESULT initializeShaders();
@@ -39,7 +39,7 @@ private:
 	int height;
 	HINSTANCE hInstance;
 	HWND hwnd;
-	class Camera* camera;
+	
 	
 	D3D_DRIVER_TYPE driverType_;
 	D3D_FEATURE_LEVEL featureLevel_;

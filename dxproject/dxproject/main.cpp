@@ -14,6 +14,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	{
 		while (engine.running())
 		{
+			engine.processInput();
 			engine.update();
 			engine.render();
 		}

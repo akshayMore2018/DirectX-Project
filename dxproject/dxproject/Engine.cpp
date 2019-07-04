@@ -1,23 +1,28 @@
 #include "Engine.h"
 #include <memory>
 #include "Graphics.h"
+#include "Input.h"
+#include "Camera.h"
 Engine::Engine()
+	:mEngineWindowClassName("Direct3DWindowClass"),
+	hInstance(NULL),
+	handle(NULL),
+	mGraphics(nullptr),
+	mInput(nullptr)
 {
-	mEngineWindowClassName = "Direct3DWindowClass";
-	hInstance = NULL;
-	handle = NULL;
-	mGraphics = nullptr;
+
 }
 
 Engine::~Engine()
 {
+	if (mInput)
+		delete mInput;
 	if (mGraphics)
 		delete mGraphics;
 }
 
 bool Engine::initialize()
 {
-
 	HRESULT result = initializeWindow(800, 600);
 	if (FAILED(result))
 	{
@@ -29,6 +34,14 @@ bool Engine::initialize()
 		if (FAILED(result))
 		{
 			return false;
+		}
+		else
+		{
+			result = initializeInput();
+			if (FAILED(result))
+			{
+				return false;
+			}
 		}
 	}
 
@@ -69,6 +82,38 @@ bool Engine::running()
 		}
 	}
 	return true;
+}
+
+void Engine::processInput()
+{
+	if (mInput)
+	{
+		mInput->update();
+		const float cameraSpeed = 0.02f;
+		if (mInput->isKeyHeld(VK_W))
+		{
+			mGraphics->camera->adjustPosition(this->mGraphics->camera->getForwardVector()*cameraSpeed);
+		}
+
+		if (mInput->isKeyHeld(VK_S))
+		{
+			mGraphics->camera->adjustPosition(this->mGraphics->camera->getBackVector()*cameraSpeed);
+		}
+
+		if (mInput->isKeyHeld(VK_A))
+		{
+			mGraphics->camera->adjustPosition(this->mGraphics->camera->getLeftVector()*cameraSpeed);
+		}
+
+		if (mInput->isKeyHeld(VK_D))
+		{
+			mGraphics->camera->adjustPosition(this->mGraphics->camera->getRightVector()*cameraSpeed);
+		}
+
+	}
+
+
+
 }
 
 LRESULT Engine::MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -151,6 +196,17 @@ HRESULT Engine::initializeGraphics()
 	mGraphics = new Graphics();
 
 	hr = mGraphics->initialize(this->handle, 800, 600);
+
+	return hr;
+}
+
+HRESULT Engine::initializeInput()
+{
+	HRESULT hr = S_OK;
+
+	mInput = new Input();
+
+	hr = mInput->initialize(this->handle, 800, 600);
 
 	return hr;
 }

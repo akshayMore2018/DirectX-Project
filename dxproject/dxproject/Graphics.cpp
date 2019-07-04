@@ -92,7 +92,7 @@ void Graphics::render()
 	unsigned int offset = 0;
 
 	XMMATRIX world = XMMatrixIdentity();
-	camera->adjustPosition(0.0f, 0.0f, 0.01f);
+	camera->setLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	mConstantBuffer.data.mat = world * camera->getViewMatrix() * camera->getProjectionMatrix();
 	mConstantBuffer.data.mat = XMMatrixTranspose(mConstantBuffer.data.mat);
 
@@ -379,7 +379,9 @@ HRESULT Graphics::initializeScene()
 		VertexPos(-0.5f,-0.5f, 0.0f,0.0f, 1.0f),
 		VertexPos(-0.5f, 0.5f, 0.0f,0.0f, 0.0f),
 		VertexPos( 0.5f, 0.5f, 0.0f,1.0f, 0.0f),
-		VertexPos( 0.5f,-0.5f, 0.0f,1.0f, 1.0f)
+		VertexPos( 0.5f,-0.5f, 0.0f,1.0f, 1.0f),
+
+
 	};
 	mVertexCount = sizeof(vertices) / sizeof(VertexPos);
 
