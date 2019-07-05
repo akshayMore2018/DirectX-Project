@@ -283,7 +283,7 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	D3D11_RASTERIZER_DESC rasterDesc;
 	ZeroMemory(&rasterDesc, sizeof(D3D11_RASTERIZER_DESC));
 	rasterDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_BACK;
+	rasterDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
 	result = d3dDevice_->CreateRasterizerState(&rasterDesc, &rasterState_);
 	if (FAILED(result))
@@ -376,10 +376,19 @@ HRESULT Graphics::initializeScene()
 	VertexPos vertices[] =
 	{
 		//position-------------------------------------color
-		VertexPos(-0.5f,-0.5f, 0.0f,0.0f, 1.0f),
-		VertexPos(-0.5f, 0.5f, 0.0f,0.0f, 0.0f),
-		VertexPos( 0.5f, 0.5f, 0.0f,1.0f, 0.0f),
-		VertexPos( 0.5f,-0.5f, 0.0f,1.0f, 1.0f),
+		VertexPos(-0.5f,-0.5f, -0.5f, 0.0f, 1.0f), //0
+		VertexPos(-0.5f, 0.5f, -0.5f, 0.0f, 0.0f), //1
+		VertexPos( 0.5f, 0.5f, -0.5f, 1.0f, 0.0f), //2
+		VertexPos( 0.5f,-0.5f, -0.5f, 1.0f, 1.0f), //3
+
+
+		VertexPos(-0.5f, -0.5f,  0.5f, 1.0f, 1.0f), //4
+		VertexPos(-0.5f,  0.5f,  0.5f, 1.0f, 0.0f), //5
+
+		VertexPos( 0.5f,  0.5f,  0.5f, 0.0f, 0.0f), //6
+		VertexPos( 0.5f, -0.5f,  0.5f, 0.0f, 1.0f), //7
+	
+
 
 
 	};
@@ -388,7 +397,11 @@ HRESULT Graphics::initializeScene()
 	unsigned long indices[] =
 	{
 		0,1,2,
-		0,2,3
+		0,2,3,
+		4,5,1,
+		4,1,0,
+		3,2,6,
+		3,6,7
 	};
 	mIndexCount = sizeof(indices) / sizeof(unsigned long);
 
