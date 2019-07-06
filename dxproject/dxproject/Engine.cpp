@@ -125,7 +125,7 @@ void Engine::processInput()
 		if (mInput->isRightPressed)
 		{
 			int x, y;
-			mInput->getMouseLocation(x,y);
+			mInput->getMouseRawLocation(x,y);
 			mGraphics->camera->adjustRotation((float)y*0.01, (float)x*0.01, 0.0f);
 		}
 	}
@@ -151,6 +151,7 @@ LRESULT Engine::MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 	return 0;
 	case WM_RBUTTONDOWN:
 	{
+		SetCapture(hwnd);
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
 		mInput->onRightMousePressed(x, y);
@@ -158,6 +159,7 @@ LRESULT Engine::MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 	return 0;
 	case WM_RBUTTONUP:
 	{
+		ReleaseCapture();
 		int x = LOWORD(lParam);
 		int y = HIWORD(lParam);
 		mInput->onRightMouseReleased(x, y);

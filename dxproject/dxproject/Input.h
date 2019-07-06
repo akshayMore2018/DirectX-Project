@@ -1,5 +1,4 @@
 #pragma once
-
 #include<Windows.h>
 
 #define VK_W 0x57
@@ -43,6 +42,7 @@ public:
 	bool isRightPressed;
 	bool isMiddlePressed;
 	void getMouseLocation(int & x, int &y);
+	void getMouseRawLocation(int & x, int &y);
 
 private:
 	bool readKeyboard();
@@ -52,4 +52,5 @@ private:
 	unsigned char keys_[VK_OEM_CLEAR + 1];
 	int mScreenWidth, mScreenHeight;
 	int x, y;
+	int rawX, rawY;
 };

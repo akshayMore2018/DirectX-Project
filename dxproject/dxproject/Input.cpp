@@ -77,8 +77,8 @@ void Input::onLeftMousePressed(int x, int y)
 
 void Input::onRightMousePressed(int x, int y)
 {
-	/*this->x = x; because conflicting with raw mouse position
-	this->y = y;*/
+	this->x = x; 
+	this->y = y;
 	this->isRightPressed = true;
 }
 
@@ -98,8 +98,8 @@ void Input::onLeftMouseReleased(int x, int y)
 
 void Input::onRightMouseReleased(int x, int y)
 {
-	/*this->x = x;
-	this->y = y;*/
+	this->x = x;
+	this->y = y;
 	this->isRightPressed = false;
 }
 
@@ -112,14 +112,20 @@ void Input::onMiddleMouseReleased(int x, int y)
 
 void Input::onMouseRawMove(int x, int y)
 {
-	this->x = x;
-	this->y = y;
+	this->rawX = x;
+	this->rawY = y;
 }
 
-void Input::getMouseLocation(int & x, int & y)
+void Input::getMouseLocation(int & X, int & Y)
 {
-	x = this->x;
-	y = this->y;
+	X = this->x;
+	Y = this->y;
+}
+
+void Input::getMouseRawLocation(int & X, int & Y)
+{
+	X = this->rawX;
+	Y = this->rawY;
 }
 
 bool Input::readKeyboard()
