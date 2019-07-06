@@ -110,6 +110,16 @@ void Engine::processInput()
 			mGraphics->camera->adjustPosition(this->mGraphics->camera->getRightVector()*cameraSpeed);
 		}
 
+		if (mInput->isKeyHeld(VK_Z))
+		{
+			mGraphics->camera->adjustPosition(0.0f,-cameraSpeed,0.0f);
+		}
+
+		if (mInput->isKeyHeld(VK_SPACE))
+		{
+			mGraphics->camera->adjustPosition(0.0f, cameraSpeed, 0.0f);
+		}
+
 	}
 
 
