@@ -92,7 +92,6 @@ void Graphics::render()
 	unsigned int offset = 0;
 
 	XMMATRIX world = XMMatrixIdentity();
-	camera->setLookAtPos(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	mConstantBuffer.data.mat = world * camera->getViewMatrix() * camera->getProjectionMatrix();
 	mConstantBuffer.data.mat = XMMatrixTranspose(mConstantBuffer.data.mat);
 

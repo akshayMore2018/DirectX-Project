@@ -5,6 +5,6 @@ SamplerState objSamplerState : Sampler: register(s0);
 
 float4 main(float2 texCoord : Texcoord) : SV_Target
 {
-	float3 pixelColor = objTexture.Sample(objSamplerState, texCoord);
+	float3 pixelColor = objTexture.Sample(objSamplerState, texCoord).xyz;
 	return float4(pixelColor,1.0f);
 }

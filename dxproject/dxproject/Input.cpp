@@ -1,25 +1,12 @@
 #include "Input.h"
 
-Input::Input()
-	:mInput(0),mMouse(0)
+Input::Input():isLeftPressed(false),isRightPressed(false),isMiddlePressed(false)
 {
 	ZeroMemory(keys_, sizeof(keys_));
 }
 
 Input::~Input()
 {
-	if (mMouse)
-	{
-		mMouse->Unacquire();
-		mMouse->Release();
-		mMouse = 0;
-	}
-
-	if (mInput)
-	{
-		mInput->Release();
-		mInput = 0;
-	}
 
 }
 
@@ -28,37 +15,20 @@ HRESULT Input::initialize(HWND hwnd, int screenWidth, int screenHeight)
 	HRESULT result = S_OK;
 	this->mScreenHeight = screenHeight;
 	this->mScreenWidth = screenWidth;
-	mMouseX = 0;
-	mMouseY = 0;
+	x = 0;
+	y = 0;
 
 	HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(NULL);
 
-	result = DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&mInput, NULL);
-	if (FAILED(result))
-	{
-		return result;
-	}
+	RAWINPUTDEVICE rid;
+	rid.usUsagePage = 0x01;
+	rid.usUsage = 0x02;
+	rid.dwFlags = 0;
+	rid.hwndTarget = NULL;
 
-	result = mInput->CreateDevice(GUID_SysMouse, &mMouse, NULL);
-	if (FAILED(result))
+	if (RegisterRawInputDevices(&rid, 1, sizeof(rid)) == FALSE)
 	{
-		return result;
-	}
-
-	result = mMouse->SetDataFormat(&c_dfDIMouse);
-	if (FAILED(result))
-	{
-		return false;
-	}
-
-	result = mMouse->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-	if (FAILED(result))
-	{
-		return result;
-	}
-	result = mMouse->Acquire();
-	if (FAILED(result))
-	{
+		result = S_FALSE;
 		return result;
 	}
 
@@ -74,11 +44,7 @@ void Input::update()
 	{
 		return;
 	}
-	result = readMouse();
-	if (!result)
-	{
-		return;
-	}
+
 	processInput();
 }
 
@@ -102,6 +68,60 @@ unsigned char Input::getKeyState(int virtualKey) const
 	return keys_[virtualKey];
 }
 
+void Input::onLeftMousePressed(int x, int y)
+{
+	this->x = x;
+	this->y = y;
+	this->isLeftPressed = true;
+}
+
+void Input::onRightMousePressed(int x, int y)
+{
+	/*this->x = x; because conflicting with raw mouse position
+	this->y = y;*/
+	this->isRightPressed = true;
+}
+
+void Input::onMiddleMousePressed(int x, int y)
+{
+	this->x = x;
+	this->y = y;
+	this->isMiddlePressed = true;
+}
+
+void Input::onLeftMouseReleased(int x, int y)
+{
+	this->x = x;
+	this->y = y;
+	this->isLeftPressed = false;
+}
+
+void Input::onRightMouseReleased(int x, int y)
+{
+	/*this->x = x;
+	this->y = y;*/
+	this->isRightPressed = false;
+}
+
+void Input::onMiddleMouseReleased(int x, int y)
+{
+	this->x = x;
+	this->y = y;
+	this->isMiddlePressed = false;
+}
+
+void Input::onMouseRawMove(int x, int y)
+{
+	this->x = x;
+	this->y = y;
+}
+
+void Input::getMouseLocation(int & x, int & y)
+{
+	x = this->x;
+	y = this->y;
+}
+
 bool Input::readKeyboard()
 {
 	if (GetKeyboardState(mKeyboardState))
@@ -109,24 +129,6 @@ bool Input::readKeyboard()
 		return true;
 	}
 	return false;
-}
-
-bool Input::readMouse()
-{
-	HRESULT result;
-	result = mMouse->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&mMouseState);
-	if (FAILED(result))
-	{
-		if ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
-		{
-			mMouse->Acquire();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	return true;
 }
 
 void Input::processInput()
@@ -137,7 +139,6 @@ void Input::processInput()
 		bool isDown = (mKeyboardState[i] & HIGH_BIT) != 0;
 		bool wasDown = (keys_[i] & KEY_STATE_HELD) != 0;
 		unsigned char newState = 0;
-
 		if (isDown)
 		{
 			newState |= KEY_STATE_HELD;
@@ -151,8 +152,6 @@ void Input::processInput()
 		{
 			newState |= KEY_STATE_RELEASED;
 		}
-
 		keys_[i] = newState;
-
 	}
 }

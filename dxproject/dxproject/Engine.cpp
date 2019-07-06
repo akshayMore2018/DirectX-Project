@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include "Input.h"
 #include "Camera.h"
+#include <string>
 Engine::Engine()
 	:mEngineWindowClassName("Direct3DWindowClass"),
 	hInstance(NULL),
@@ -23,6 +24,7 @@ Engine::~Engine()
 
 bool Engine::initialize()
 {
+	engineHandle = this;
 	HRESULT result = initializeWindow(800, 600);
 	if (FAILED(result))
 	{
@@ -120,20 +122,64 @@ void Engine::processInput()
 			mGraphics->camera->adjustPosition(0.0f, cameraSpeed, 0.0f);
 		}
 
+		if (mInput->isRightPressed)
+		{
+			int x, y;
+			mInput->getMouseLocation(x,y);
+			mGraphics->camera->adjustRotation((float)y*0.01, (float)x*0.01, 0.0f);
+		}
 	}
-
-
-
 }
 
 LRESULT Engine::MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-
 	switch (message)
 	{
-	case WM_LBUTTONUP:
-		
+	case WM_LBUTTONDOWN:
+	{
+		int x = LOWORD(lParam);
+		int y = HIWORD(lParam);
+		mInput->onLeftMousePressed(x, y);
+	}
 		return 0;
+	case WM_LBUTTONUP:
+	{
+		int x = LOWORD(lParam);
+		int y = HIWORD(lParam);
+		mInput->onLeftMouseReleased(x, y);
+	}
+	return 0;
+	case WM_RBUTTONDOWN:
+	{
+		int x = LOWORD(lParam);
+		int y = HIWORD(lParam);
+		mInput->onRightMousePressed(x, y);
+	}
+	return 0;
+	case WM_RBUTTONUP:
+	{
+		int x = LOWORD(lParam);
+		int y = HIWORD(lParam);
+		mInput->onRightMouseReleased(x, y);
+	}
+	return 0;
+	case WM_INPUT:
+		UINT dataSize;
+		GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
+		if (dataSize > 0)
+		{
+			std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>(dataSize);
+			if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, rawData.get(), &dataSize, sizeof(RAWINPUTHEADER)) == dataSize)
+			{
+				RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawData.get());
+				if (raw->header.dwType == RIM_TYPEMOUSE)
+				{
+					mInput->onMouseRawMove(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+				}
+			}
+
+		}
+		return DefWindowProc(hwnd,message,wParam,lParam);
 	default:
 		return DefWindowProc(hwnd, message, wParam, lParam);
 	}
