@@ -4,6 +4,10 @@
 #include "Input.h"
 #include "Camera.h"
 #include <string>
+
+const int WIDTH = 1920;
+const int HEIGHT = 1200;
+
 Engine::Engine()
 	:mEngineWindowClassName("Direct3DWindowClass"),
 	hInstance(NULL),
@@ -25,7 +29,7 @@ Engine::~Engine()
 bool Engine::initialize()
 {
 	engineHandle = this;
-	HRESULT result = initializeWindow(800, 600);
+	HRESULT result = initializeWindow(WIDTH, HEIGHT);
 	if (FAILED(result))
 	{
 		return false;
@@ -127,6 +131,11 @@ void Engine::processInput()
 			int x, y;
 			mInput->getMouseRawLocation(x,y);
 			mGraphics->camera->adjustRotation((float)y*0.01, (float)x*0.01, 0.0f);
+		}
+
+		if (mInput->isKeyReleased(VK_ESCAPE))
+		{
+			PostMessage(this->handle, WM_CLOSE, 0, 0);
 		}
 	}
 }
@@ -253,7 +262,7 @@ HRESULT Engine::initializeGraphics()
 
 	mGraphics = new Graphics();
 
-	hr = mGraphics->initialize(this->handle, 800, 600);
+	hr = mGraphics->initialize(this->handle, WIDTH, HEIGHT);
 
 	return hr;
 }
@@ -264,7 +273,7 @@ HRESULT Engine::initializeInput()
 
 	mInput = new Input();
 
-	hr = mInput->initialize(this->handle, 800, 600);
+	hr = mInput->initialize(this->handle, WIDTH, HEIGHT);
 
 	return hr;
 }

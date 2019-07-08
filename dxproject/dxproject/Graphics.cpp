@@ -4,9 +4,44 @@
 #include <WICTextureLoader.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <sstream>
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "D3DCompiler.lib") 
 #pragma comment(lib, "DirectXTK.lib")
+
+
+#define ReleaseCOM(x) { if(x){ x->Release(); x = 0; } }
+#ifndef HR
+#define HR(x)																								\
+{																											\
+	HRESULT hr = (x);																						\
+	if(FAILED(hr))																							\
+	{																										\
+		std::stringstream ss;																				\
+		ss <<"Line :"<< __LINE__<<"\n";																		\
+		ss<<"Source : "<<#x<<"\n";																			\
+		if(hr == E_INVALIDARG)																				\
+		{																									\
+			ss<<"ERROR CODE: An invalid parameter was passed to the returning function.\n";					\
+		}																									\
+		else if(hr == E_FAIL)																				\
+		{																									\
+			ss<<"ERROR CODE: Attempted to create a device with the debug layer enabled and the layer is not installed.";\
+		}																									\
+		else if(hr == E_NOINTERFACE)																		\
+		{																									\
+			ss<<"ERROR CODE: No such interface supported";													\
+		}																									\
+		else if(hr == 0x887a0001)																			\
+		{																									\
+			ss<<"ERROR CODE: DXGI_ERROR_INVALID_CALL \n The application provided invalid parameter data";	\
+		}																									\
+		MessageBox(0,ss.str().c_str(), "ERROR", MB_OK);														\
+		return hr;																							\
+	}																										\
+}								
+#endif
+
 
 Graphics::Graphics()
 	:driverType_(D3D_DRIVER_TYPE_NULL),
@@ -18,7 +53,7 @@ Graphics::Graphics()
 	inputLayout_(0), vertexBuffer_(0), rasterState_(0), samplerState_(0),
 	mVertexBuffer(0), mIndexBuffer(0),
 	mVertexCount(0), mIndexCount(0), mTex(0),
-	width(0),height(0),camera(0)
+	width(0),height(0),camera(0), mEnable4xMsaa(false)
 {
 
 }
@@ -29,96 +64,32 @@ Graphics::~Graphics()
 		delete camera;
 	camera = 0;
 
-	if (mTex)mTex->Release();
-	mTex = 0;
+	ReleaseCOM(mTex);
+	ReleaseCOM(mVertexBuffer);
+	ReleaseCOM(mIndexBuffer);
 
-	if (mVertexBuffer) mVertexBuffer->Release();
-	if (mIndexBuffer) mIndexBuffer->Release();
+	ReleaseCOM(rasterState_);
+	ReleaseCOM(samplerState_);
+	ReleaseCOM(solidColorVS_);
+	ReleaseCOM(solidColorPS_);
+	ReleaseCOM(inputLayout_);
 
-	mVertexBuffer = 0;
-	mIndexBuffer = 0;
+	ReleaseCOM(depthStencilState_);
+	ReleaseCOM(depthStencilBuffer_);
+	ReleaseCOM(depthStencilView_);
+	ReleaseCOM(backBufferTarget_);
+	ReleaseCOM(swapChain_);
+	ReleaseCOM(d3dContext_);
+	ReleaseCOM(d3dDevice_);
 
-	if (rasterState_)rasterState_->Release();
-	if (samplerState_)samplerState_->Release();
-	if (solidColorVS_) solidColorVS_->Release();
-	if (solidColorPS_) solidColorPS_->Release();
-	if (inputLayout_) inputLayout_->Release();
-	rasterState_ = 0;
-	samplerState_ = 0;
-	solidColorVS_ = 0;
-	solidColorPS_ = 0;
-	inputLayout_ = 0;
-
-	if (depthStencilState_)depthStencilState_->Release();
-	if (depthStencilBuffer_)depthStencilBuffer_->Release();
-	if (depthStencilView_)depthStencilView_->Release();
-	if (backBufferTarget_) backBufferTarget_->Release();
-	if (swapChain_) swapChain_->Release();
-	if (d3dContext_) d3dContext_->Release();
-	if (d3dDevice_) d3dDevice_->Release();
-	d3dDevice_ = 0;
-	d3dContext_ = 0;
-	swapChain_ = 0;
-	backBufferTarget_ = 0;
-	depthStencilView_ = 0;
-	depthStencilBuffer_ = 0;
-	depthStencilState_ = 0;
-
-
-}
-
-void Graphics::update(float dt)
-{
-
-}
-
-void Graphics::render()
-{
-	if (d3dContext_ == 0)
-		return;
-	float clearColor[4] = { 0.0f, 0.0f, 0.25f, 1.0f };
-	d3dContext_->ClearRenderTargetView(backBufferTarget_, clearColor);
-	d3dContext_->ClearDepthStencilView(depthStencilView_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	d3dContext_->IASetInputLayout(inputLayout_);
-	d3dContext_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	d3dContext_->RSSetState(rasterState_);
-	d3dContext_->OMSetDepthStencilState(depthStencilState_, 0);
-	d3dContext_->PSSetSamplers(0, 1, &samplerState_);
-	d3dContext_->VSSetShader(solidColorVS_, 0, 0);
-	d3dContext_->PSSetShader(solidColorPS_, 0, 0);
-	
-	unsigned int stride = sizeof(VertexPos);
-	unsigned int offset = 0;
-
-	XMMATRIX world = XMMatrixIdentity();
-	mConstantBuffer.data.mat = world * camera->getViewMatrix() * camera->getProjectionMatrix();
-	mConstantBuffer.data.mat = XMMatrixTranspose(mConstantBuffer.data.mat);
-
-	if (!mConstantBuffer.applyChanges(d3dContext_))
-	{
-		return;
-	}
-	d3dContext_->VSSetConstantBuffers(0, 1, mConstantBuffer.get());
-	d3dContext_->PSSetShaderResources(0, 1, &mTex);
-	d3dContext_->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
-	d3dContext_->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	d3dContext_->DrawIndexed(mIndexCount, 0, 0);
-
-	mSpriteBatch->Begin();
-
-	mSpriteFont->DrawString(mSpriteBatch.get(), L"DirectX11 Demo", DirectX::XMFLOAT2(0, 0), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0, 0), DirectX::XMFLOAT2(1.0, 1.0));
-
-	mSpriteBatch->End();
-
-	swapChain_->Present(1, NULL);
 }
 
 HRESULT Graphics::initialize(HWND hwnd, int width, int height)
 {
 	this->width = width;
 	this->height = height;
-	HRESULT hr = initializeDirectX(hwnd);
+	this->hwnd = hwnd;
+	HRESULT hr = initializeDirectX();
 
 	if (SUCCEEDED(hr))
 	{
@@ -131,7 +102,34 @@ HRESULT Graphics::initialize(HWND hwnd, int width, int height)
 	return hr;
 }
 
-HRESULT Graphics::initializeDirectX(HWND hwnd)
+HRESULT Graphics::initializeDirectX()
+{
+	HRESULT result = S_OK;
+	HR(createDevice());
+
+	HR(checkMultisampleQualityLevels());
+
+	HR(createSwapChain());
+	
+	HR(createRendertargetView());
+
+	HR(createDepthStencilView());
+
+	HR(createDepthStencilState());
+	
+	setViewPort();
+	
+	HR(createRasterizerState());
+
+	HR(createSamplerState());
+
+	mSpriteBatch = std::make_unique<DirectX::SpriteBatch>(d3dContext_);
+	mSpriteFont = std::make_unique<DirectX::SpriteFont>(d3dDevice_, L"Assets\\Fonts\\comic_sans_ms_16.spritefont");
+
+	return result;
+}
+
+HRESULT Graphics::createDevice()
 {
 	HRESULT result = S_OK;
 
@@ -149,7 +147,38 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	};
 	unsigned int totalFeatureLevels = ARRAYSIZE(featureLevels);
 
-	
+	unsigned int creationFlag = 0;
+#ifdef _DEBUG
+	creationFlag |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	unsigned int driver = 0;
+
+	for (driver = 0; driver < totalDriverTypes; ++driver)
+	{
+		result = D3D11CreateDevice(0, driverTypes[driver], 0,
+			creationFlag, featureLevels, totalFeatureLevels,
+			D3D11_SDK_VERSION,
+			&d3dDevice_, &featureLevel_, &d3dContext_);
+
+		if (SUCCEEDED(result))
+		{
+			driverType_ = driverTypes[driver];
+			break;
+		}
+	}
+	return result;
+}
+
+HRESULT Graphics::checkMultisampleQualityLevels()
+{
+	HRESULT result = d3dDevice_->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality);
+	return result;
+}
+
+HRESULT Graphics::createSwapChain()
+{
+	HRESULT result = S_OK;
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 	swapChainDesc.BufferDesc.Width = this->width;
@@ -160,8 +189,16 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.SampleDesc.Quality = 0;
+	if (mEnable4xMsaa)
+	{
+		swapChainDesc.SampleDesc.Count = 4;
+		swapChainDesc.SampleDesc.Quality = m4xMsaaQuality - 1;
+	}
+	else
+	{
+		swapChainDesc.SampleDesc.Count = 1;
+		swapChainDesc.SampleDesc.Quality = 0;
+	}
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 1;
 	swapChainDesc.OutputWindow = hwnd;
@@ -169,36 +206,31 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-	unsigned int creationFlag = 0;
-#ifdef _DEBUG
-	creationFlag |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+	IDXGIDevice* pDXGIDevice = nullptr;
 
-	unsigned int driver = 0;
+	HR(d3dDevice_->QueryInterface(__uuidof(IDXGIDevice), (void**)&pDXGIDevice));
 
-	for (driver = 0; driver < totalDriverTypes; ++driver)
-	{
-		result = D3D11CreateDeviceAndSwapChain(0, driverTypes[driver], 0,
-			creationFlag, featureLevels, totalFeatureLevels,
-			D3D11_SDK_VERSION, &swapChainDesc, &swapChain_,
-			&d3dDevice_, &featureLevel_, &d3dContext_);
+	IDXGIAdapter * pDXGIAdapter = nullptr;
 
-		if (SUCCEEDED(result))
-		{
-			driverType_ = driverTypes[driver];
-			break;
-		}
-	}
+	HR(pDXGIDevice->GetAdapter(&pDXGIAdapter));
 
-	if (FAILED(result))
-	{
-		MessageBox(hwnd, (LPCSTR)L"Direct3D device!", (LPCSTR)L"Failed to create the device and swap chain", MB_OK);
-		return result;
-	}
+	IDXGIFactory * pIDXGIFactory = nullptr;
 
+	HR(pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void **)&pIDXGIFactory));
+
+	result = pIDXGIFactory->CreateSwapChain(d3dDevice_, &swapChainDesc, &swapChain_);
+
+	pDXGIDevice->Release();
+	pDXGIAdapter->Release();
+	pIDXGIFactory->Release();
+	return result;
+}
+
+HRESULT Graphics::createRendertargetView()
+{
+	HRESULT result = S_OK;
 	ID3D11Texture2D* backBufferTexture;
-
-	result = swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture));
+	HR(swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture)));
 	// __uuidof retrieves the GUID attached to the expression.
 	//A GUID is a 128-bit value consisting of one group of 8 hexadecimal digits, 
 	//followed by three groups of 4 hexadecimal digits each, 
@@ -207,66 +239,63 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	//A GUID is a "Globally Unique ID"
 	//GUIDs are also used to identify all interfaces and objects in COM programming. 
 
-
-	if (FAILED(result))
-	{
-		MessageBox(hwnd, (LPCSTR)L"Back Buffer!", (LPCSTR)L"Failed to get back buffer!", MB_OK);
-		return result;
-	}
-
-	result = d3dDevice_->CreateRenderTargetView(backBufferTexture, 0,
-		&backBufferTarget_);
+	HR(d3dDevice_->CreateRenderTargetView(backBufferTexture, 0,
+		&backBufferTarget_));
 	if (backBufferTexture)
 		backBufferTexture->Release();
-	
-	if (FAILED(result))
-	{
-		MessageBox(hwnd, (LPCSTR)L"Render target!", (LPCSTR)L"Failed to create the render target view!", MB_OK);
-		return result;
-	}
+	return result;
+}
 
+HRESULT Graphics::createDepthStencilView()
+{
+	HRESULT result = S_OK;
 	D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
 	depthStencilBufferDesc.Width = this->width;
 	depthStencilBufferDesc.Height = this->height;
 	depthStencilBufferDesc.MipLevels = 1;
 	depthStencilBufferDesc.ArraySize = 1;
 	depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilBufferDesc.SampleDesc.Count = 1;
-	depthStencilBufferDesc.SampleDesc.Quality = 0;
+
+	if (mEnable4xMsaa)
+	{
+		depthStencilBufferDesc.SampleDesc.Count = 4;
+		depthStencilBufferDesc.SampleDesc.Quality = m4xMsaaQuality - 1;
+	}
+	else
+	{
+		depthStencilBufferDesc.SampleDesc.Count = 1;
+		depthStencilBufferDesc.SampleDesc.Quality = 0;
+	}
+
 	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	depthStencilBufferDesc.CPUAccessFlags = 0;
 	depthStencilBufferDesc.MiscFlags = 0;
 
-	result = d3dDevice_->CreateTexture2D(&depthStencilBufferDesc, NULL, &depthStencilBuffer_);
-	if (FAILED(result))
-	{
-		MessageBox(0, "Error Creating Depth Stencil Buffer!", "Buffer Error", MB_OK);
-		return result;
-	}
+	HR(d3dDevice_->CreateTexture2D(&depthStencilBufferDesc, NULL, &depthStencilBuffer_));
 
-	result = d3dDevice_->CreateDepthStencilView(depthStencilBuffer_, NULL, &depthStencilView_);
-	if (FAILED(result))
-	{
-		MessageBox(0, "Error Creating Depth Stencil View!", "View Error", MB_OK);
-		return result;
-	}
+	HR(d3dDevice_->CreateDepthStencilView(depthStencilBuffer_, NULL, &depthStencilView_));
 
 	d3dContext_->OMSetRenderTargets(1, &backBufferTarget_, depthStencilView_);
 
+	return result;
+}
+
+HRESULT Graphics::createDepthStencilState()
+{
+	HRESULT result = S_OK;
 	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
 	ZeroMemory(&depthStencilStateDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 	depthStencilStateDesc.DepthEnable = true;
 	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
 	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
 
-	result = d3dDevice_->CreateDepthStencilState(&depthStencilStateDesc, &depthStencilState_);
-	if (FAILED(result))
-	{
-		MessageBox(0, "Error Creating Depth Stencil State!", "View Error", MB_OK);
-		return result;
-	}
+	HR(d3dDevice_->CreateDepthStencilState(&depthStencilStateDesc, &depthStencilState_));
+	return result;
+}
 
+void Graphics::setViewPort()
+{
 	D3D11_VIEWPORT viewport;
 	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
 	viewport.Width = static_cast<float>(width);
@@ -275,25 +304,25 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	viewport.MaxDepth = 1.0f;
 	viewport.TopLeftX = 0.0f;
 	viewport.TopLeftY = 0.0f;
-	
+
 	d3dContext_->RSSetViewports(1, &viewport);
+}
 
-
+HRESULT Graphics::createRasterizerState()
+{
+	HRESULT result = S_OK;
 	D3D11_RASTERIZER_DESC rasterDesc;
 	ZeroMemory(&rasterDesc, sizeof(D3D11_RASTERIZER_DESC));
 	rasterDesc.FillMode = D3D11_FILL_MODE::D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_MODE::D3D11_CULL_NONE;
 
-	result = d3dDevice_->CreateRasterizerState(&rasterDesc, &rasterState_);
-	if (FAILED(result))
-	{
-		MessageBox(0, "Error Creating Raster State!", "Raster Error", MB_OK);
-		return result;
-	}
+	HR(d3dDevice_->CreateRasterizerState(&rasterDesc, &rasterState_));
+	return result;
+}
 
-	mSpriteBatch = std::make_unique<DirectX::SpriteBatch>(d3dContext_);
-	mSpriteFont = std::make_unique<DirectX::SpriteFont>(d3dDevice_, L"Assets\\Fonts\\comic_sans_ms_16.spritefont");
-
+HRESULT Graphics::createSamplerState()
+{
+	HRESULT result = S_OK;
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -304,14 +333,10 @@ HRESULT Graphics::initializeDirectX(HWND hwnd)
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	result = d3dDevice_->CreateSamplerState(&samplerDesc, &samplerState_);
-	if (FAILED(result))
-	{
-		MessageBox(0, "Error Creating Sampler State!", "Sampler Error", MB_OK);
-	}
-
+	HR(d3dDevice_->CreateSamplerState(&samplerDesc, &samplerState_));
 	return result;
 }
+
 
 HRESULT Graphics::initializeShaders()
 {
@@ -473,5 +498,134 @@ HRESULT Graphics::initializeScene()
 }
 
 
+void Graphics::update(float dt)
+{
 
+}
+
+void Graphics::render()
+{
+	if (d3dContext_ == 0)
+		return;
+	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	d3dContext_->ClearRenderTargetView(backBufferTarget_, clearColor);
+	d3dContext_->ClearDepthStencilView(depthStencilView_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	d3dContext_->IASetInputLayout(inputLayout_);
+	d3dContext_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	d3dContext_->RSSetState(rasterState_);
+	d3dContext_->OMSetDepthStencilState(depthStencilState_, 0);
+	d3dContext_->PSSetSamplers(0, 1, &samplerState_);
+	d3dContext_->VSSetShader(solidColorVS_, 0, 0);
+	d3dContext_->PSSetShader(solidColorPS_, 0, 0);
+
+	unsigned int stride = sizeof(VertexPos);
+	unsigned int offset = 0;
+
+	XMMATRIX world = XMMatrixIdentity();
+	mConstantBuffer.data.mat = world * camera->getViewMatrix() * camera->getProjectionMatrix();
+	mConstantBuffer.data.mat = XMMatrixTranspose(mConstantBuffer.data.mat);
+
+	if (!mConstantBuffer.applyChanges(d3dContext_))
+	{
+		return;
+	}
+	d3dContext_->VSSetConstantBuffers(0, 1, mConstantBuffer.get());
+	d3dContext_->PSSetShaderResources(0, 1, &mTex);
+	d3dContext_->IASetVertexBuffers(0, 1, &mVertexBuffer, &stride, &offset);
+	d3dContext_->IASetIndexBuffer(mIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	d3dContext_->DrawIndexed(mIndexCount, 0, 0);
+
+	mSpriteBatch->Begin();
+
+	mSpriteFont->DrawString(mSpriteBatch.get(), L"DirectX11 Demo", DirectX::XMFLOAT2(0, 0), DirectX::Colors::White, 0.0f, DirectX::XMFLOAT2(0, 0), DirectX::XMFLOAT2(1.0, 1.0));
+
+	mSpriteBatch->End();
+
+	swapChain_->Present(1, NULL);
+}
+
+void Graphics::onResize(int width, int height)
+{
+	/*ReleaseCOM(backBufferTarget_);
+	ReleaseCOM(depthStencilView_);
+	ReleaseCOM(depthStencilBuffer_);
+
+	HRESULT result = swapChain_->ResizeBuffers(1, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	ID3D11Texture2D* backBufferTexture;
+	result = swapChain_->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBufferTexture));
+
+	result = d3dDevice_->CreateRenderTargetView(backBufferTexture, 0,
+		&backBufferTarget_);
+	if (backBufferTexture)
+		backBufferTexture->Release();
+
+	if (FAILED(result))
+	{
+		MessageBox(hwnd, (LPCSTR)L"Render target!", (LPCSTR)L"Failed to create the render target view!", MB_OK);
+		return;
+	}
+
+	D3D11_TEXTURE2D_DESC depthStencilBufferDesc;
+	depthStencilBufferDesc.Width = this->width;
+	depthStencilBufferDesc.Height = this->height;
+	depthStencilBufferDesc.MipLevels = 1;
+	depthStencilBufferDesc.ArraySize = 1;
+	depthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	if (mEnable4xMsaa)
+	{
+		depthStencilBufferDesc.SampleDesc.Count = 4;
+		depthStencilBufferDesc.SampleDesc.Quality = m4xMsaaQuality - 1;
+	}
+	else
+	{
+		depthStencilBufferDesc.SampleDesc.Count = 1;
+		depthStencilBufferDesc.SampleDesc.Quality = 0;
+	}
+
+	depthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilBufferDesc.CPUAccessFlags = 0;
+	depthStencilBufferDesc.MiscFlags = 0;
+
+	result = d3dDevice_->CreateTexture2D(&depthStencilBufferDesc, NULL, &depthStencilBuffer_);
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating Depth Stencil Buffer!", "Buffer Error", MB_OK);
+		return;
+	}
+
+	result = d3dDevice_->CreateDepthStencilView(depthStencilBuffer_, NULL, &depthStencilView_);
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating Depth Stencil View!", "View Error", MB_OK);
+		return;
+	}
+
+	d3dContext_->OMSetRenderTargets(1, &backBufferTarget_, depthStencilView_);
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilStateDesc;
+	ZeroMemory(&depthStencilStateDesc, sizeof(D3D11_DEPTH_STENCIL_DESC));
+	depthStencilStateDesc.DepthEnable = true;
+	depthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK::D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilStateDesc.DepthFunc = D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS_EQUAL;
+
+	result = d3dDevice_->CreateDepthStencilState(&depthStencilStateDesc, &depthStencilState_);
+	if (FAILED(result))
+	{
+		MessageBox(0, "Error Creating Depth Stencil State!", "View Error", MB_OK);
+		return;
+	}
+
+	D3D11_VIEWPORT viewport;
+	ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+	viewport.Width = static_cast<float>(width);
+	viewport.Height = static_cast<float>(height);
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+	d3dContext_->RSSetViewports(1, &viewport);*/
+}
 

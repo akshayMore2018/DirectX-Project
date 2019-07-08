@@ -30,16 +30,19 @@ public:
 
 	void update(float dt);
 	void render();
+
+	void onResize(int width, int height);
+
 	class Camera* camera;
 private:
-	HRESULT initializeDirectX(HWND hwnd);
+	HRESULT initializeDirectX();
 	HRESULT initializeShaders();
 	HRESULT initializeScene();
 	int width;
 	int height;
-	HINSTANCE hInstance;
 	HWND hwnd;
-	
+	bool mEnable4xMsaa;
+	UINT m4xMsaaQuality;
 	
 	D3D_DRIVER_TYPE driverType_;
 	D3D_FEATURE_LEVEL featureLevel_;
@@ -72,5 +75,16 @@ private:
 	int mVertexCount, mIndexCount;
 	ID3D11ShaderResourceView* mTex;
 	ConstantBuffer<Matrix> mConstantBuffer;
+
+	HRESULT createDevice();
+	HRESULT checkMultisampleQualityLevels();
+	HRESULT createSwapChain();
+	HRESULT createRendertargetView();
+	HRESULT createDepthStencilView();
+	HRESULT createDepthStencilState();
+	void setViewPort();
+
+	HRESULT createRasterizerState();
+	HRESULT createSamplerState();
 
 };
