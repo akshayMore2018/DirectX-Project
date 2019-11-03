@@ -9,7 +9,7 @@ protected:
 	//Reference to Input class
 	class Input		* mInput;
 	//Windows handle
-	HWND			Hwnd;
+	HWND			mHwnd;
 	//Standard return type
 	HRESULT			Hr;
 

@@ -1,9 +1,8 @@
 #include <Windows.h>
 #include "Constants.h"
-#include <memory>
 #include "Engine.h"
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 HRESULT CreateMainWindow(HWND &Hwnd,HINSTANCE HInstance, const std::string& EngineWindowClassName, int Width, int Height);
 
@@ -27,10 +26,9 @@ void Safe_Delete(T* &Object) //param : reference to a pointer
 int WINAPI wWinMain(HINSTANCE HInstance, HINSTANCE PrevIntance,
 	LPWSTR CmdLine, int CmdShow)
 {
-
 	_Engine = new Engine();
 
-	HRESULT Result = CreateMainWindow(Hwnd, HInstance, "DirectXWindow", 1920, 1080);
+	HRESULT Result = CreateMainWindow(Hwnd, HInstance, "DirectXWindow", WINDOW_WIDTH, WINDOW_HEIGHT);
 	if (FAILED(Result))
 	{
 		return -1;
@@ -38,7 +36,6 @@ int WINAPI wWinMain(HINSTANCE HInstance, HINSTANCE PrevIntance,
 
 	try
 	{
-
 		_Engine->Initialize(Hwnd);
 
 		MSG Message;
@@ -47,7 +44,7 @@ int WINAPI wWinMain(HINSTANCE HInstance, HINSTANCE PrevIntance,
 
 		while (Running)
 		{
-			if (PeekMessage(&Message, Hwnd, 0, 0, PM_REMOVE))
+			if (PeekMessage(&Message, NULL, 0, 0, PM_REMOVE))
 			{
 				if (Message.message == WM_QUIT || Message.message == WM_NULL)
 				{
