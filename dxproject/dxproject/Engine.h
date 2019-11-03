@@ -3,25 +3,51 @@
 #include <iostream>
 class Engine
 {
-public:
-	Engine();
-	~Engine();
-	bool initialize();
-	bool running();
-	void processInput();
-	void update();
-	void render();
-	LRESULT CALLBACK MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-private:
-	HRESULT initializeWindow(int width,int height);
-	HRESULT initializeGraphics();
-	HRESULT initializeInput();
+protected:
+	//Reference to Graphics class
+	class Graphics	* mGraphics;
+	//Reference to Input class
+	class Input		* mInput;
+	//Windows handle
+	HWND			Hwnd;
+	//Standard return type
+	HRESULT			Hr;
 
-	HWND handle;
-	HINSTANCE hInstance;
-	std::string mEngineWindowClassName;
-	class Graphics * mGraphics;
-	class Input* mInput;
+	bool			Initialized;
+
+public:
+	//constructor
+	Engine();
+	//Destructor
+	virtual ~Engine();
+	
+public:
+	//Initialize the Game
+	virtual void Initialize(HWND Hwnd);
+
+	virtual void Run(HWND Hwnd);
+
+	virtual void RenderGame();
+
+	virtual void ReleaseAll();
+
+	virtual void ResetAll();
+
+	virtual void DeleteAll();
+
+	//Windows message handler
+	LRESULT MessageHandler(HWND Hwnd, UINT Message, WPARAM WParam, LPARAM LParam);
+	
+
+	
+public:
+
+	Graphics	*GetGraphics();
+
+	Input		*GetInput();
+
+public:
+
+	void ExitGame();
+	void processInput();
 };
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-static Engine* engineHandle = 0;

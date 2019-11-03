@@ -9,16 +9,59 @@ const int WIDTH = 1920;
 const int HEIGHT = 1200;
 
 Engine::Engine()
-	:mEngineWindowClassName("Direct3DWindowClass"),
-	hInstance(NULL),
-	handle(NULL),
-	mGraphics(nullptr),
-	mInput(nullptr)
+	:	mGraphics(nullptr)
+	,	mInput(nullptr)
+	,	Hwnd(NULL)
+	,	Initialized(false)
 {
-
+	
 }
 
 Engine::~Engine()
+{
+	DeleteAll();
+	ShowCursor(true);
+}
+
+
+void Engine::Initialize(HWND Hwnd)
+{
+	this->Hwnd = Hwnd;
+
+	mGraphics = new Graphics();
+	mGraphics->initialize(Hwnd, WIDTH, HEIGHT);
+
+	mInput = new Input();
+	mInput->initialize(Hwnd, WIDTH, HEIGHT);
+
+	Initialized = true;
+
+}
+
+
+void Engine::Run(HWND Hwnd)
+{
+	processInput();
+	RenderGame();
+
+}
+
+
+void Engine::RenderGame()
+{
+	if (mGraphics!=nullptr)
+		mGraphics->render();
+}
+
+void Engine::ReleaseAll()
+{
+}
+
+void Engine::ResetAll()
+{
+}
+
+void Engine::DeleteAll()
 {
 	if (mInput)
 		delete mInput;
@@ -26,68 +69,10 @@ Engine::~Engine()
 		delete mGraphics;
 }
 
-bool Engine::initialize()
+
+void Engine::ExitGame()
 {
-	engineHandle = this;
-	HRESULT result = initializeWindow(WIDTH, HEIGHT);
-	if (FAILED(result))
-	{
-		return false;
-	}
-	else
-	{
-		result = initializeGraphics();
-		if (FAILED(result))
-		{
-			return false;
-		}
-		else
-		{
-			result = initializeInput();
-			if (FAILED(result))
-			{
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-
-
-
-void Engine::update()
-{
-	
-}
-
-void Engine::render()
-{
-	if (mGraphics)
-		mGraphics->render();
-}
-
-bool Engine::running()
-{
-	MSG msg;
-	ZeroMemory(&msg, sizeof(MSG));
-
-	while (PeekMessage(&msg, this->handle, 0, 0, PM_REMOVE))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);	
-	}
-
-	if (msg.message == WM_NULL)
-	{
-		if (!IsWindow(this->handle))
-		{
-			this->handle = NULL;
-			UnregisterClass((LPCSTR)mEngineWindowClassName.c_str(), this->hInstance);
-			return false;
-		}
-	}
-	return true;
+	PostMessage(Hwnd, WM_DESTROY, 0, 0);
 }
 
 void Engine::processInput()
@@ -135,157 +120,106 @@ void Engine::processInput()
 
 		if (mInput->isKeyReleased(VK_ESCAPE))
 		{
-			PostMessage(this->handle, WM_CLOSE, 0, 0);
+			PostMessage(this->Hwnd, WM_CLOSE, 0, 0);
 		}
 	}
 }
 
-LRESULT Engine::MessageHandler(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT Engine::MessageHandler(HWND Hwnd, UINT Message, WPARAM WParam, LPARAM LParam)
 {
-	switch (message)
+	if (Initialized)
 	{
-	case WM_LBUTTONDOWN:
-	{
-		int x = LOWORD(lParam);
-		int y = HIWORD(lParam);
-		mInput->onLeftMousePressed(x, y);
-	}
-		return 0;
-	case WM_LBUTTONUP:
-	{
-		int x = LOWORD(lParam);
-		int y = HIWORD(lParam);
-		mInput->onLeftMouseReleased(x, y);
-	}
-	return 0;
-	case WM_RBUTTONDOWN:
-	{
-		SetCapture(hwnd);
-		int x = LOWORD(lParam);
-		int y = HIWORD(lParam);
-		mInput->onRightMousePressed(x, y);
-	}
-	return 0;
-	case WM_RBUTTONUP:
-	{
-		ReleaseCapture();
-		int x = LOWORD(lParam);
-		int y = HIWORD(lParam);
-		mInput->onRightMouseReleased(x, y);
-	}
-	return 0;
-	case WM_INPUT:
-		UINT dataSize;
-		GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
-		if (dataSize > 0)
+		switch (Message)
 		{
-			std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>(dataSize);
-			if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, rawData.get(), &dataSize, sizeof(RAWINPUTHEADER)) == dataSize)
+		case WM_DESTROY:
+			PostQuitMessage(0);		//Terminate this program.
+			return 0;
+		case WM_KEYDOWN:
+		case WM_SYSKEYDOWN:
+
+			return 0;
+		case WM_KEYUP:
+		case WM_SYSKEYUP:
+
+			return 0;
+		case WM_CHAR:				// Character entered
+			return 0;
+		case WM_MOUSEMOVE:
+			return 0;
+		case WM_INPUT:				//raw mouse data
+		{
+			UINT dataSize;
+			GetRawInputData(reinterpret_cast<HRAWINPUT>(LParam), RID_INPUT, NULL, &dataSize, sizeof(RAWINPUTHEADER));
+			if (dataSize > 0)
 			{
-				RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawData.get());
-				if (raw->header.dwType == RIM_TYPEMOUSE)
+				std::unique_ptr<BYTE[]> rawData = std::make_unique<BYTE[]>(dataSize);
+				if (GetRawInputData(reinterpret_cast<HRAWINPUT>(LParam), RID_INPUT, rawData.get(), &dataSize, sizeof(RAWINPUTHEADER)) == dataSize)
 				{
-					mInput->onMouseRawMove(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+					RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawData.get());
+					if (raw->header.dwType == RIM_TYPEMOUSE)
+					{
+						mInput->onMouseRawMove(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+					}
 				}
+
 			}
 
 		}
-		return DefWindowProc(hwnd,message,wParam,lParam);
-	default:
-		return DefWindowProc(hwnd, message, wParam, lParam);
+			return DefWindowProc(Hwnd, Message, WParam, LParam);
+		case WM_LBUTTONDOWN:
+		{
+			int x = LOWORD(LParam);
+			int y = HIWORD(LParam);
+			mInput->onLeftMousePressed(x, y);
+
+		}
+			return 0;
+		case WM_LBUTTONUP:
+		{
+			int x = LOWORD(LParam);
+			int y = HIWORD(LParam);
+			mInput->onLeftMouseReleased(x, y);
+
+		}
+			return 0;
+		case WM_MBUTTONDOWN:
+			return 0;
+		case WM_MBUTTONUP:
+			return 0;
+		case WM_RBUTTONDOWN:
+		{
+			SetCapture(Hwnd);
+			int x = LOWORD(LParam);
+			int y = HIWORD(LParam);
+			mInput->onRightMousePressed(x, y);
+
+		}
+			return 0;
+		case WM_RBUTTONUP:
+		{
+			ReleaseCapture();
+			int x = LOWORD(LParam);
+			int y = HIWORD(LParam);
+			mInput->onRightMouseReleased(x, y);
+
+		}
+			return 0;
+		case WM_DEVICECHANGE:
+			return 0;
+		}
 	}
+
+	return DefWindowProc(Hwnd, Message, WParam, LParam);
+
 }
 
-HRESULT Engine::initializeWindow(int width, int height)
+
+Graphics * Engine::GetGraphics()
 {
-	HRESULT hr = S_OK;
-	if (this->hInstance == NULL)
-		this->hInstance = (HINSTANCE)GetModuleHandle(NULL);
-
-	WNDCLASSEX wc;
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wc.lpfnWndProc = WindowProc;
-	wc.cbClsExtra = 0; 
-	wc.cbWndExtra = 0;
-	wc.hInstance = this->hInstance; 
-	wc.hIcon = NULL;   
-	wc.hIconSm = NULL; 
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW); 
-	wc.hbrBackground = NULL; 
-	wc.lpszMenuName = NULL; 
-	wc.lpszClassName = mEngineWindowClassName.c_str();
-	wc.cbSize = sizeof(WNDCLASSEX);
-
-	if (!RegisterClassEx(&wc))
-	{
-		DWORD error = GetLastError();
-		if (error != ERROR_CLASS_ALREADY_EXISTS)
-			return HRESULT_FROM_WIN32(error);
-	}
-
-	int centerScreenX = GetSystemMetrics(SM_CXSCREEN) / 2 - width / 2;
-	int centerScreenY = GetSystemMetrics(SM_CYSCREEN) / 2 - height / 2;
-	RECT wr;
-	wr.left = centerScreenX;
-	wr.top = centerScreenY;
-	wr.right = wr.left + width;
-	wr.bottom = wr.top + height;
-	AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE);
-
-
-	this->handle = CreateWindowEx(0,
-		mEngineWindowClassName.c_str(),
-		mEngineWindowClassName.c_str(),
-		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, 
-		wr.left, 
-		wr.top, 
-		wr.right - wr.left, 
-		wr.bottom - wr.top, 
-		NULL, 
-		NULL,
-		this->hInstance, 
-		NULL); 
-
-	if (!this->handle)
-		return S_FALSE;
-
-	ShowWindow(this->handle, SW_SHOW);
-	SetForegroundWindow(this->handle);
-	SetFocus(this->handle);
-
-	return hr;
+	return mGraphics;
 }
 
-HRESULT Engine::initializeGraphics()
+Input * Engine::GetInput()
 {
-	HRESULT hr = S_OK;
-
-	mGraphics = new Graphics();
-
-	hr = mGraphics->initialize(this->handle, WIDTH, HEIGHT);
-
-	return hr;
-}
-
-HRESULT Engine::initializeInput()
-{
-	HRESULT hr = S_OK;
-
-	mInput = new Input();
-
-	hr = mInput->initialize(this->handle, WIDTH, HEIGHT);
-
-	return hr;
-}
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{	
-	switch (uMsg)
-	{
-	case WM_CLOSE:
-		DestroyWindow(hwnd);
-		return 0;
-	default:
-		return engineHandle->MessageHandler(hwnd, uMsg, wParam, lParam);
-	}
+	return mInput;
 }
